@@ -1,4 +1,5 @@
 require "./aliases"
+require "./filter"
 
 class KaduExporter::Writer
   OUTPUT_DIR = "var"
@@ -13,6 +14,9 @@ class KaduExporter::Writer
 
     @i = 0
     @whole_i = 0 # for whole file logs
+    @filter = KaduExporter::Filter.new(
+      logger: @logger
+    )
   end
 
   def make_it_so
@@ -49,6 +53,14 @@ class KaduExporter::Writer
       chat: chat,
       messages: messages
     )
+
+    # write filtered
+    @filter.filtered_messages.keys.each do |chat|
+      write_to_filtered_files(
+        chat: chat,
+        messages: @filter.filtered_messages[chat]
+      )
+    end
   end
 
 
@@ -78,6 +90,31 @@ class KaduExporter::Writer
     end
   end
 
+  def write_to_filtered_files(
+    chat : String,
+    messages = Array(KaduExporter::Message).new
+  )
+    dir_path = File.join([OUTPUT_DIR, "filtered"])
+    Dir.mkdir(dir_path) unless File.exists?(dir_path)
+
+    path = File.join([dir_path, "#{chat.gsub(/\W/, "")}.html"])
+
+    @logger.info("Writing #{path}")
+    File.open(path, "w") do |file|
+      file.puts html_header()
+
+      messages.each do |message|
+        write_message_to_file(
+          file: file, 
+          message: message,
+          filter_enabled: false
+        )
+      end
+
+      file.puts html_footer()
+    end
+  end
+
   def write_to_whole_file(
     chat : String,
     messages = Array(KaduExporter::Message).new
@@ -99,7 +136,11 @@ class KaduExporter::Writer
     end
   end
 
-  private def write_message_to_file(file, message : KaduExporter::Message)
+  private def write_message_to_file(
+      file,
+      message : KaduExporter::Message,
+      filter_enabled : Bool = true
+    )
     file.puts "<div class=\"msg\">"
 
     file.puts "<span class=\"msg_time\">#{message.time.to_s(TIME_OUTPUT_FORMAT)}</span>"
@@ -110,7 +151,15 @@ class KaduExporter::Writer
       file.puts "<span class=\"msg_direction msg_incoming\"> &lt;&lt; </span>"
     end
 
-    file.puts "<span class=\"msg_content\">#{message.content}</span>"
+    file.puts "<span class=\"msg_content\">"
+    if filter_enabled
+      file.puts @filter.filter_msg_content(
+        message
+      )
+    else
+      file.puts message.content
+    end
+    file.puts "</span>"
 
     file.puts "</div>"
   end
@@ -124,6 +173,7 @@ body {background-color: black; color: white}
 .msg_outgoing {color: red}
 .msg_incoming {color: green}
 .msg_time {font-weight: bold}
+.msg_filtered {border: 2px dotted red; font-weight: bold; background-color: #444}
 </style>
 </head>
 <body>
