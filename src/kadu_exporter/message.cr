@@ -18,7 +18,7 @@ struct KaduExporter::Message
     @receive_time : Time | Nil,
     @content : String,
     @attributes : String,
-    @chat : String = "",
+    @chat : String = ""
   )
     @day = @time.date.as(Time)
     @day_string = @day.to_s(DAY_FORMAT).as(String)

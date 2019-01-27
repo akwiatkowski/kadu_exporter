@@ -17,7 +17,7 @@ class KaduExporter::Writer
   end
 
   def write_chat(chat : String)
-    messages = @ms[chat].sort{ |a,b| a.time <=> b.time }
+    messages = @ms[chat].sort { |a, b| a.time <=> b.time }
 
     messaged_per_day = MessageDay.new
     messages.each do |message|
@@ -31,7 +31,6 @@ class KaduExporter::Writer
         messages: messaged_per_day[day]
       )
     end
-
   end
 
   def write_to_day_file(
