@@ -10,10 +10,15 @@ class KaduExporter::Writer
     @ms : MessageSet
   )
     Dir.mkdir(OUTPUT_DIR) unless File.exists?(OUTPUT_DIR)
+
     @i = 0
+    @whole_i = 0 # for whole file logs
   end
 
   def make_it_so
+    @i = 0
+    @whole_i = 0
+
     @logger.info("Prepare write")
 
     @ms.keys.each do |chat|
@@ -39,7 +44,14 @@ class KaduExporter::Writer
         messages: messaged_per_day[day]
       )
     end
+
+    write_to_whole_file(
+      chat: chat,
+      messages: messages
+    )
   end
+
+
 
   def write_to_day_file(
     chat : String,
@@ -54,25 +66,46 @@ class KaduExporter::Writer
     @logger.info("Writing #{path}")
     File.open(path, "w") do |file|
       messages.each do |message|
-        file.puts "<div class=\"msg\">"
-
-        file.puts "<span class=\"msg_time\">#{message.time.to_s(TIME_OUTPUT_FORMAT)}</span>"
-
-        file.puts "<span class=\"msg_direction\">"
-        if message.outgoing
-          file.puts ">>"
-        else
-          file.puts "<<"
-        end
-        file.puts "</span>"
-
-        file.puts "<span class=\"msg_content\">#{message.content}</span>"
-
-        file.puts "</div>"
+        write_message_to_file(file, message)
 
         @i += 1
         @logger.info("Wrote #{@i}") if @i % LOG_EVERY == 0
       end
     end
+  end
+
+  def write_to_whole_file(
+    chat : String,
+    messages = Array(KaduExporter::Message).new
+  )
+    path = File.join([OUTPUT_DIR, "#{chat.gsub(/\W/, "")}.html"])
+
+    @logger.info("Writing whole file #{path}")
+    File.open(path, "w") do |file|
+      messages.each do |message|
+        write_message_to_file(file, message)
+
+        @whole_i += 1
+        @logger.info("Wrote #{@whole_i}") if @whole_i % LOG_EVERY == 0
+      end
+    end
+  end
+
+  private def write_message_to_file(file, message : KaduExporter::Message)
+    file.puts "<div class=\"msg\">"
+
+    file.puts "<span class=\"msg_time\">#{message.time.to_s(TIME_OUTPUT_FORMAT)}</span>"
+
+    file.puts "<span class=\"msg_direction\">"
+    if message.outgoing
+      file.puts ">>"
+    else
+      file.puts "<<"
+    end
+    file.puts "</span>"
+
+    file.puts "<span class=\"msg_content\">#{message.content}</span>"
+
+    file.puts "</div>"
   end
 end
