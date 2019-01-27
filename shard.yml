@@ -1,0 +1,13 @@
+name: kadu_exporter
+version: 0.1.0
+
+authors:
+  - Aleksander Kwiatkowski <bobikx@poczta.fm>
+
+targets:
+  kadu_exporter:
+    main: src/kadu_exporter.cr
+
+crystal: 0.25.1
+
+license: MIT
