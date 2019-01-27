@@ -10,4 +10,8 @@ targets:
 
 crystal: 0.25.1
 
-license: MIT
+dependencies:
+  sqlite3:
+    github: crystal-lang/crystal-sqlite3
+
+license: GPLv3

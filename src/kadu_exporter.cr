@@ -1,6 +1,4 @@
-require "./kadu_exporter/*"
+require "./kadu_exporter/task"
 
-# TODO: Write documentation for `KaduExporter`
 module KaduExporter
-  # TODO: Put your code here
 end
