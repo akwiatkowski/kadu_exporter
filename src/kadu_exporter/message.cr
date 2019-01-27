@@ -10,7 +10,7 @@ struct KaduExporter::Message
   getter :day_string
   getter :outgoing
 
-  DAY_FORMAT = "%Y-%m-%d"
+  
   OUTGOING_FLAG = "outgoing=1"
 
   def initialize(

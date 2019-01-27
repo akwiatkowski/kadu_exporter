@@ -7,7 +7,7 @@ class KaduExporter::Task
   MAIN_QUERY         = "select chat,sender,send_time,receive_time,content,attributes from kadu_messages"
   TIME_FORMAT        = "%Y-%m-%dT%H:%M:%S"
   INITIAL_BLANK_TIME = Time.utc(1990, 1, 1)
-  LOG_EVERY          = 10
+  LOG_EVERY          = GLOBAL_LOG_EVERY
 
   def initialize(
     @path : String,

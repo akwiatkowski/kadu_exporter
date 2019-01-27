@@ -3,7 +3,7 @@ require "./aliases"
 class KaduExporter::Writer
   OUTPUT_DIR = "var"
   TIME_OUTPUT_FORMAT = "%Y-%m-%d %H:%M:%S"
-  LOG_EVERY          = 10
+  LOG_EVERY          = GLOBAL_LOG_EVERY
 
   def initialize(
     @logger : Logger,
@@ -65,12 +65,16 @@ class KaduExporter::Writer
 
     @logger.info("Writing #{path}")
     File.open(path, "w") do |file|
+      file.puts html_header()
+
       messages.each do |message|
         write_message_to_file(file, message)
 
         @i += 1
         @logger.info("Wrote #{@i}") if @i % LOG_EVERY == 0
       end
+
+      file.puts html_footer()
     end
   end
 
@@ -82,12 +86,16 @@ class KaduExporter::Writer
 
     @logger.info("Writing whole file #{path}")
     File.open(path, "w") do |file|
+      file.puts html_header()
+
       messages.each do |message|
         write_message_to_file(file, message)
 
         @whole_i += 1
         @logger.info("Wrote #{@whole_i}") if @whole_i % LOG_EVERY == 0
       end
+
+      file.puts html_footer()
     end
   end
 
@@ -96,16 +104,33 @@ class KaduExporter::Writer
 
     file.puts "<span class=\"msg_time\">#{message.time.to_s(TIME_OUTPUT_FORMAT)}</span>"
 
-    file.puts "<span class=\"msg_direction\">"
     if message.outgoing
-      file.puts ">>"
+      file.puts "<span class=\"msg_direction msg_outgoing\"> &gt;&gt; </span>"
     else
-      file.puts "<<"
+      file.puts "<span class=\"msg_direction msg_incoming\"> &lt;&lt; </span>"
     end
-    file.puts "</span>"
 
     file.puts "<span class=\"msg_content\">#{message.content}</span>"
 
     file.puts "</div>"
+  end
+
+  private def html_header()
+    return "
+<head>
+<style>
+body {background-color: black; color: white}
+.msg_direction {font-weight: bold}
+.msg_outgoing {color: red}
+.msg_incoming {color: green}
+.msg_time {font-weight: bold}
+</style>
+</head>
+<body>
+"
+  end
+
+  private def html_footer()
+    return "</body>"
   end
 end
