@@ -1,12 +1,12 @@
 require "sqlite3"
 require "logger"
 require "./message"
+require "./writer"
 
-class KaduExplorer::Task
-  OUTPUT_DIR = "var"
+class KaduExporter::Task
   MAIN_QUERY = "select chat,sender,send_time,receive_time,content,attributes from kadu_messages"
   TIME_FORMAT = "%Y-%m-%dT%H:%M:%S"
-  # TIME_FORMAT = SQLite3::DATE_FORMAT
+  INITIAL_BLANK_TIME = Time.utc(1990, 1, 1)
   LOG_EVERY = 10
 
   def initialize(
@@ -14,9 +14,7 @@ class KaduExplorer::Task
     @filter_query : String = "limit 10",
     @location : Time::Location = Time::Location.load("Europe/Warsaw")
   )
-    Dir.mkdir(OUTPUT_DIR) unless File.exists?(OUTPUT_DIR)
-
-    @history = Hash(String, Array(KaduExplorer::Message)).new
+    @message_set = MessageSet.new
     @logger = Logger.new(STDOUT)
     @i = 0
   end
@@ -38,8 +36,14 @@ class KaduExplorer::Task
           @logger.info("Processed #{@i}") if @i % LOG_EVERY == 0
         end
       end
-      @logger.info("Finished")
+      @logger.info("Finished #{@i}")
     end
+
+    writer = KaduExporter::Writer.new(
+      logger: @logger,
+      ms: @message_set
+    )
+    writer.make_it_so
   end
 
   private def process_rs(rs)
@@ -53,6 +57,8 @@ class KaduExplorer::Task
     send_time = nil
     receive_time = nil
 
+    time = INITIAL_BLANK_TIME
+
     if send_time_object
       begin
         send_time = Time.parse(
@@ -60,6 +66,7 @@ class KaduExplorer::Task
           pattern: TIME_FORMAT,
           location: @location
         )
+        time = send_time
       rescue Time::Format::Error
         @logger.error("Parse time error: #{send_time_object}")
       end
@@ -72,23 +79,25 @@ class KaduExplorer::Task
           pattern: TIME_FORMAT,
           location: @location
         )
+        time = receive_time
       rescue Time::Format::Error
         @logger.error("Parse time error: #{receive_time_object}")
       end
     end
 
 
-    message = KaduExplorer::Message.new(
+    message = KaduExporter::Message.new(
       chat: chat,
       sender: sender,
+      time: time,
       send_time: send_time,
       receive_time: receive_time,
       content: content,
       attributes: attributes
     )
 
-    @history[chat] ||= Array(KaduExplorer::Message).new
-    @history[chat] << message
+    @message_set[chat] ||= Array(KaduExporter::Message).new
+    @message_set[chat] << message
     @i += 1
   end
 end
