@@ -8,8 +8,10 @@ struct KaduExporter::Message
   getter :chat
   getter :day
   getter :day_string
+  getter :outgoing
 
   DAY_FORMAT = "%Y-%m-%d"
+  OUTGOING_FLAG = "outgoing=1"
 
   def initialize(
     @sender : String,
@@ -22,5 +24,11 @@ struct KaduExporter::Message
   )
     @day = @time.date.as(Time)
     @day_string = @day.to_s(DAY_FORMAT).as(String)
+
+    if @attributes.to_s.strip == OUTGOING_FLAG
+      @outgoing = true
+    else
+      @outgoing = false
+    end
   end
 end
