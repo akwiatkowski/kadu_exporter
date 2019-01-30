@@ -2,7 +2,7 @@ require "./aliases"
 require "./filter"
 
 class KaduExporter::Writer
-  OUTPUT_DIR = "var"
+  OUTPUT_DIR         = "var"
   TIME_OUTPUT_FORMAT = "%Y-%m-%d %H:%M:%S"
   LOG_EVERY          = GLOBAL_LOG_EVERY
 
@@ -62,8 +62,6 @@ class KaduExporter::Writer
       )
     end
   end
-
-
 
   def write_to_day_file(
     chat : String,
@@ -137,10 +135,10 @@ class KaduExporter::Writer
   end
 
   private def write_message_to_file(
-      file,
-      message : KaduExporter::Message,
-      filter_enabled : Bool = true
-    )
+    file,
+    message : KaduExporter::Message,
+    filter_enabled : Bool = true
+  )
     file.puts "<div class=\"msg\">"
 
     file.puts "<span class=\"msg_time\">#{message.time.to_s(TIME_OUTPUT_FORMAT)}</span>"
@@ -164,7 +162,7 @@ class KaduExporter::Writer
     file.puts "</div>"
   end
 
-  private def html_header()
+  private def html_header
     return "
 <head>
 <style>
@@ -180,7 +178,7 @@ body {background-color: black; color: white}
 "
   end
 
-  private def html_footer()
+  private def html_footer
     return "</body>"
   end
 end
