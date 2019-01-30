@@ -10,7 +10,7 @@ struct KaduExporter::Message
   getter :day_string
   getter :outgoing
 
-  
+
   OUTGOING_FLAG = "outgoing=1"
 
   def initialize(
@@ -30,5 +30,10 @@ struct KaduExporter::Message
     else
       @outgoing = false
     end
+
+    # sanitize msg
+    @content = @content.
+      gsub(/style='/, "style_removed='").
+      gsub(/style=\"/, "style_removed=\"")
   end
 end

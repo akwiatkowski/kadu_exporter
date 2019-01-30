@@ -105,7 +105,7 @@ class KaduExporter::Writer
 
       messages.each do |message|
         write_message_to_file(
-          file: file, 
+          file: file,
           message: message,
           filter_enabled: false
         )
